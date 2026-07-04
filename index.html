@@ -209,7 +209,7 @@
         </div>
     </div>
 
-    <div class="message-box" id="msgBox">Đang tải vũ trụ Dogotchi...</div>
+    <div class="message-box" id="msgBox">Đang tải vũ trụ...</div>
 
     <div class="tabs">
         <button class="tab-btn active" id="tabHome" onclick="switchTab('home')">🏠 NUÔI</button>
@@ -341,10 +341,38 @@
     let currentMathLvl = 1;
     let correctStrAnswer = '';
 
-    const englishDict = [
-        { q: "Quả chuối", a: "banana" }, { q: "Con mèo", a: "cat" }, { q: "Máy tính", a: "computer" }, 
-        { q: "Màu xanh", a: "blue" }, { q: "Cái bút", a: "pen" }, { q: "Mặt trời", a: "sun" }
-    ];
+const englishDict = [
+    {q: "Quả chuối", a: "banana"}, {q: "Con mèo", a: "cat"}, {q: "Máy tính", a: "computer"}, {q: "Màu xanh", a: "blue"}, {q: "Cái bút", a: "pen"}, {q: "Mặt trời", a: "sun"}, {q: "Quả táo", a: "apple"}, {q: "Con chó", a: "dog"}, {q: "Cái bàn", a: "table"}, {q: "Cái ghế", a: "chair"},
+    {q: "Màu đỏ", a: "red"}, {q: "Màu vàng", a: "yellow"}, {q: "Ngôi nhà", a: "house"}, {q: "Trường học", a: "school"}, {q: "Bố", a: "father"}, {q: "Mẹ", a: "mother"}, {q: "Anh trai", a: "brother"}, {q: "Em gái", a: "sister"}, {q: "Bạn bè", a: "friend"}, {q: "Trái đất", a: "earth"},
+    {q: "Bầu trời", a: "sky"}, {q: "Nước", a: "water"}, {q: "Lửa", a: "fire"}, {q: "Đất", a: "soil"}, {q: "Gió", a: "wind"}, {q: "Mưa", a: "rain"}, {q: "Tuyết", a: "snow"}, {q: "Cây", a: "tree"}, {q: "Hoa", a: "flower"}, {q: "Cỏ", a: "grass"},
+    {q: "Con chim", a: "bird"}, {q: "Con cá", a: "fish"}, {q: "Con voi", a: "elephant"}, {q: "Con hổ", a: "tiger"}, {q: "Con sư tử", a: "lion"}, {q: "Con khỉ", a: "monkey"}, {q: "Con gấu", a: "bear"}, {q: "Con thỏ", a: "rabbit"}, {q: "Con chuột", a: "mouse"}, {q: "Con ngựa", a: "horse"},
+    {q: "Sách", a: "book"}, {q: "Giấy", a: "paper"}, {q: "Thước kẻ", a: "ruler"}, {q: "Cục tẩy", a: "eraser"}, {q: "Cặp sách", a: "bag"}, {q: "Điện thoại", a: "phone"}, {q: "Đồng hồ", a: "clock"}, {q: "Xe đạp", a: "bicycle"}, {q: "Xe máy", a: "motorbike"}, {q: "Ô tô", a: "car"},
+    {q: "Cơm", a: "rice"}, {q: "Bánh mì", a: "bread"}, {q: "Sữa", a: "milk"}, {q: "Nước cam", a: "orange juice"}, {q: "Thịt", a: "meat"}, {q: "Cá", a: "fish"}, {q: "Trứng", a: "egg"}, {q: "Phở", a: "noodle"}, {q: "Đường", a: "sugar"}, {q: "Muối", a: "salt"},
+    {q: "Mắt", a: "eye"}, {q: "Mũi", a: "nose"}, {q: "Miệng", a: "mouth"}, {q: "Tai", a: "ear"}, {q: "Tay", a: "hand"}, {q: "Chân", a: "foot"}, {q: "Đầu", a: "head"}, {q: "Tóc", a: "hair"}, {q: "Ngón tay", a: "finger"}, {q: "Tim", a: "heart"},
+    {q: "Vui", a: "happy"}, {q: "Buồn", a: "sad"}, {q: "Tức giận", a: "angry"}, {q: "Sợ hãi", a: "scared"}, {q: "Đói", a: "hungry"}, {q: "Khát", a: "thirsty"}, {q: "Mệt", a: "tired"}, {q: "Nóng", a: "hot"}, {q: "Lạnh", a: "cold"}, {q: "Đẹp", a: "beautiful"},
+    {q: "Chạy", a: "run"}, {q: "Nhảy", a: "jump"}, {q: "Ăn", a: "eat"}, {q: "Ngủ", a: "sleep"}, {q: "Học", a: "study"}, {q: "Làm việc", a: "work"}, {q: "Đi bộ", a: "walk"}, {q: "Bơi", a: "swim"}, {q: "Hát", a: "sing"}, {q: "Nhảy múa", a: "dance"},
+    {q: "Số một", a: "one"}, {q: "Số hai", a: "two"}, {q: "Số ba", a: "three"}, {q: "Số bốn", a: "four"}, {q: "Số năm", a: "five"}, {q: "Số sáu", a: "six"}, {q: "Số bảy", a: "seven"}, {q: "Số tám", a: "eight"}, {q: "Số chín", a: "nine"}, {q: "Số mười", a: "ten"},
+    {q: "Màu trắng", a: "white"}, {q: "Màu đen", a: "black"}, {q: "Màu xanh dương", a: "blue"}, {q: "Màu xanh lá", a: "green"}, {q: "Màu tím", a: "purple"}, {q: "Màu hồng", a: "pink"}, {q: "Màu nâu", a: "brown"}, {q: "Màu xám", a: "gray"}, {q: "Màu cam", a: "orange"}, {q: "Trong suốt", a: "transparent"},
+    {q: "Thứ hai", a: "monday"}, {q: "Thứ ba", a: "tuesday"}, {q: "Thứ tư", a: "wednesday"}, {q: "Thứ năm", a: "thursday"}, {q: "Thứ sáu", a: "friday"}, {q: "Thứ bảy", a: "saturday"}, {q: "Chủ nhật", a: "sunday"}, {q: "Tháng", a: "month"}, {q: "Năm", a: "year"}, {q: "Ngày", a: "day"},
+    {q: "Thành phố", a: "city"}, {q: "Làng", a: "village"}, {q: "Biển", a: "sea"}, {q: "Núi", a: "mountain"}, {q: "Đường phố", a: "street"}, {q: "Công viên", a: "park"}, {q: "Cửa hàng", a: "shop"}, {q: "Bệnh viện", a: "hospital"}, {q: "Khách sạn", a: "hotel"}, {q: "Sân bay", a: "airport"},
+    {q: "Áo sơ mi", a: "shirt"}, {q: "Quần", a: "pants"}, {q: "Giày", a: "shoe"}, {q: "Mũ", a: "hat"}, {q: "Váy", a: "dress"}, {q: "Áo khoác", a: "coat"}, {q: "Găng tay", a: "glove"}, {q: "Tất", a: "sock"}, {q: "Thắt lưng", a: "belt"}, {q: "Kính", a: "glasses"},
+    {q: "Cửa", a: "door"}, {q: "Cửa sổ", a: "window"}, {q: "Bóng đèn", a: "light"}, {q: "Giường", a: "bed"}, {q: "Gối", a: "pillow"}, {q: "Chăn", a: "blanket"}, {q: "Tủ", a: "wardrobe"}, {q: "Bếp", a: "kitchen"}, {q: "Phòng ngủ", a: "bedroom"}, {q: "Phòng khách", a: "living room"},
+    {q: "Máy bay", a: "plane"}, {q: "Tàu hỏa", a: "train"}, {q: "Tàu thủy", a: "ship"}, {q: "Xe bus", a: "bus"}, {q: "Xe tải", a: "truck"}, {q: "Trực thăng", a: "helicopter"}, {q: "Tên lửa", a: "rocket"}, {q: "Tàu ngầm", a: "submarine"}, {q: "Cano", a: "canoe"}, {q: "Xe kéo", a: "trailer"},
+    {q: "Chanh", a: "lemon"}, {q: "Cam", a: "orange"}, {q: "Dưa hấu", a: "watermelon"}, {q: "Nho", a: "grape"}, {q: "Dâu tây", a: "strawberry"}, {q: "Xoài", a: "mango"}, {q: "Đu đủ", a: "papaya"}, {q: "Dứa", a: "pineapple"}, {q: "Đào", a: "peach"}, {q: "Mận", a: "plum"},
+    {q: "Cà rốt", a: "carrot"}, {q: "Khoai tây", a: "potato"}, {q: "Hành tây", a: "onion"}, {q: "Cà chua", a: "tomato"}, {q: "Dưa chuột", a: "cucumber"}, {q: "Bắp cải", a: "cabbage"}, {q: "Ớt", a: "chili"}, {q: "Tỏi", a: "garlic"}, {q: "Gừng", a: "ginger"}, {q: "Nấm", a: "mushroom"},
+    {q: "Bóng đá", a: "football"}, {q: "Bóng rổ", a: "basketball"}, {q: "Cầu lông", a: "badminton"}, {q: "Bơi lội", a: "swimming"}, {q: "Chạy bộ", a: "jogging"}, {q: "Đạp xe", a: "cycling"}, {q: "Quần vợt", a: "tennis"}, {q: "Bóng chuyền", a: "volleyball"}, {q: "Đấm bốc", a: "boxing"}, {q: "Cờ vua", a: "chess"},
+    {q: "Tivi", a: "television"}, {q: "Radio", a: "radio"}, {q: "Máy ảnh", a: "camera"}, {q: "Đàn guitar", a: "guitar"}, {q: "Piano", a: "piano"}, {q: "Trống", a: "drum"}, {q: "Sáo", a: "flute"}, {q: "Loa", a: "speaker"}, {q: "Micro", a: "microphone"}, {q: "Đĩa", a: "disc"},
+    {q: "Khôn ngoan", a: "wise"}, {q: "Thông minh", a: "smart"}, {q: "Dũng cảm", a: "brave"}, {q: "Tốt bụng", a: "kind"}, {q: "Trung thực", a: "honest"}, {q: "Vui vẻ", a: "cheerful"}, {q: "Trầm tính", a: "quiet"}, {q: "Năng động", a: "active"}, {q: "Thân thiện", a: "friendly"}, {q: "Kiên nhẫn", a: "patient"},
+    {q: "Ngọt", a: "sweet"}, {q: "Mặn", a: "salty"}, {q: "Chua", a: "sour"}, {q: "Đắng", a: "bitter"}, {q: "Cay", a: "spicy"}, {q: "Béo", a: "fatty"}, {q: "Giòn", a: "crispy"}, {q: "Mềm", a: "soft"}, {q: "Cứng", a: "hard"}, {q: "Tươi", a: "fresh"},
+    {q: "Nhanh", a: "fast"}, {q: "Chậm", a: "slow"}, {q: "Cao", a: "high"}, {q: "Thấp", a: "low"}, {q: "Dài", a: "long"}, {q: "Ngắn", a: "short"}, {q: "To", a: "big"}, {q: "Nhỏ", a: "small"}, {q: "Nặng", a: "heavy"}, {q: "Nhẹ", a: "light"},
+    {q: "Hôm nay", a: "today"}, {q: "Hôm qua", a: "yesterday"}, {q: "Ngày mai", a: "tomorrow"}, {q: "Sáng", a: "morning"}, {q: "Chiều", a: "afternoon"}, {q: "Tối", a: "evening"}, {q: "Đêm", a: "night"}, {q: "Tuần", a: "week"}, {q: "Giờ", a: "hour"}, {q: "Phút", a: "minute"},
+    {q: "Vẽ", a: "draw"}, {q: "Viết", a: "write"}, {q: "Đọc", a: "read"}, {q: "Nghe", a: "listen"}, {q: "Nói", a: "speak"}, {q: "Nhìn", a: "look"}, {q: "Mua", a: "buy"}, {q: "Bán", a: "sell"}, {q: "Cho", a: "give"}, {q: "Nhận", a: "receive"},
+    {q: "Bác sĩ", a: "doctor"}, {q: "Giáo viên", a: "teacher"}, {q: "Kỹ sư", a: "engineer"}, {q: "Công nhân", a: "worker"}, {q: "Nông dân", a: "farmer"}, {q: "Cảnh sát", a: "police"}, {q: "Đầu bếp", a: "chef"}, {q: "Ca sĩ", a: "singer"}, {q: "Diễn viên", a: "actor"}, {q: "Phi công", a: "pilot"},
+    {q: "Quạt", a: "fan"}, {q: "Điều hòa", a: "air conditioner"}, {q: "Tủ lạnh", a: "fridge"}, {q: "Máy giặt", a: "washing machine"}, {q: "Lò vi sóng", a: "microwave"}, {q: "Bàn chải", a: "toothbrush"}, {q: "Kem đánh răng", a: "toothpaste"}, {q: "Xà phòng", a: "soap"}, {q: "Khăn", a: "towel"}, {q: "Gương", a: "mirror"},
+    {q: "Mùa xuân", a: "spring"}, {q: "Mùa hè", a: "summer"}, {q: "Mùa thu", a: "autumn"}, {q: "Mùa đông", a: "winter"}, {q: "Thời tiết", a: "weather"}, {q: "Nắng", a: "sunny"}, {q: "Mưa", a: "rainy"}, {q: "Gió", a: "windy"}, {q: "Mây", a: "cloudy"}, {q: "Bão", a: "stormy"},
+    {q: "Đất nước", a: "country"}, {q: "Thế giới", a: "world"}, {q: "Vũ trụ", a: "universe"}, {q: "Hành tinh", a: "planet"}, {q: "Ngôi sao", a: "star"}, {q: "Mặt trăng", a: "moon"}, {q: "Vệ tinh", a: "satellite"}, {q: "Tên lửa", a: "rocket"}, {q: "Phi thuyền", a: "spaceship"}, {q: "Người ngoài hành tinh", a: "alien"},
+    {q: "Tự do", a: "freedom"}, {q: "Hòa bình", a: "peace"}, {q: "Tình yêu", a: "love"}, {q: "Hy vọng", a: "hope"}, {q: "Thành công", a: "success"}, {q: "Ước mơ", a: "dream"}, {q: "Sự thật", a: "truth"}, {q: "Lịch sử", a: "history"}, {q: "Khoa học", a: "science"}, {q: "Nghệ thuật", a: "art"}
+];
 
     function initParticles() {
         weatherParticles = [];
@@ -365,7 +393,7 @@ async function syncWeatherWithThacBa() {
         // Logic "phi logic": Thú cưng phản ứng với thời tiết
         if (weatherCondition === 'Rain') {
             currentWeather = 'stormy'; // Chuyển sang trạng thái mưa
-            triggerPetSecretMessage("Trời Thác Bà đang mưa buồn quá... Cùng mình ngồi nghe tiếng mưa rơi nhé?");
+            triggerPetSecretMessage("Trời đang mưa buồn quá... Cùng mình ngồi nghe tiếng mưa rơi nhé?");
         } else if (weatherCondition === 'Clear') {
             currentWeather = 'sunny';
             triggerPetSecretMessage("Ngoài trời nắng đẹp quá! Có muốn ra ngoài làm chút gì đó không?");
@@ -402,7 +430,7 @@ setInterval(syncWeatherWithThacBa, 60000);
 
         // Đĩa bay tự động hồi phục niềm vui
         if (saveState.inventory.hasUfo && saveState.happy < 100) {
-            saveState.happy = Math.min(100, saveState.happy + 3);
+            saveState.happy = Math.min(100, saveState.happy + 1);
         }
 
         // Logic ẩn nấp chuồng khi trời bão hoặc đang ngủ
@@ -426,7 +454,7 @@ setInterval(syncWeatherWithThacBa, 60000);
 
         // Khấu trừ chỉ số sinh tồn theo thời gian thực
         const now = Date.now();
-        const minutesPassed = (now - saveState.lastTick) / (1000 * 60*60);
+        const minutesPassed = (now - saveState.lastTick) / (1000 * 60*2);
         saveState.lastTick = now;
 
         if (minutesPassed > 0) {
