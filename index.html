@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dogotchi Hyper Evolution v12.0 - Quantum Edition</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #020617, #0f172a);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #fff;
+            user-select: none;
+        }
+
+        .game-console {
+            background-color: #334155;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,255,255,0.2);
+            border: 8px solid #1e293b;
+            width: 460px;
+            box-sizing: border-box;
+        }
+
+        .lcd-screen {
+            background-color: #92a686;
+            border: 6px solid #0f172a;
+            border-radius: 14px;
+            padding: 12px;
+            box-sizing: border-box;
+            width: 100%;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        /* Giả lập lưới pixel cổ điển */
+        .lcd-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%), linear-gradient(90deg, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.08) 50%);
+            background-size: 3px 3px;
+            z-index: 10;
+            pointer-events: none;
+            border-radius: 10px;
+        }
+
+        .top-bar {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 11px;
+            border-bottom: 2px dashed #0f172a;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            text-align: center;
+            position: relative;
+            z-index: 11;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 2px solid #0f172a;
+            box-sizing: border-box;
+            width: 100%;
+            height: 170px;
+            cursor: crosshair;
+            background-color: transparent;
+            position: relative;
+            z-index: 5;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 12px;
+            margin-top: 8px;
+            border-top: 2px dashed #0f172a;
+            padding-top: 6px;
+            position: relative;
+            z-index: 11;
+        }
+
+        .stat-line { 
+            display: flex; 
+            justify-content: space-between; 
+            background: rgba(0,0,0,0.07); 
+            padding: 4px 6px; 
+            border-radius: 4px;
+        }
+
+        .message-box {
+            background: #0f172a;
+            color: #4ade80;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 6px;
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-sizing: border-box;
+            border: 2px solid #475569;
+            line-height: 1.4;
+            text-shadow: 0 0 4px rgba(74,222,128,0.5);
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 14px;
+        }
+
+        .tab-btn {
+            background-color: #cbd5e1;
+            color: #0f172a;
+            border: 2px solid #94a3b8;
+            padding: 8px 1px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px #64748b;
+            transition: all 0.1s ease;
+        }
+
+        .tab-btn:active { box-shadow: 0 1px #64748b; transform: translateY(2px); }
+        .tab-btn.active { background-color: #f59e0b; border-color: #d97706; color: white; }
+
+        .control-subpanel {
+            margin-top: 14px;
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 10px;
+            min-height: 155px;
+            box-sizing: border-box;
+            border: 2px solid #475569;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 3px #b91c1c;
+        }
+        .action-btn:active { box-shadow: none; transform: translateY(3px); }
+        .action-btn:disabled { background: #475569 !important; box-shadow: none; cursor: not-allowed; opacity: 0.4; }
+        
+        .interactive-input {
+            width: 85%;
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 6px 0;
+            border-radius: 4px;
+            border: 2px solid #475569;
+            background: #0f172a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-console">
+    <div class="lcd-screen">
+        <div class="top-bar">
+            <span id="txtStage" style="text-align:left;">Khởi tạo...</span>
+            <span id="txtStatus" style="color:#0f172a; font-weight: 900;">⚡ CHUẨN BỊ</span>
+            <span style="text-align:right;">💰<span id="txtCoins">0</span> 💎<span id="txtGems">0</span> 🎫<span id="txtTickets">0</span></span>
+        </div>
+
+        <canvas id="mainCanvas" width="400" height="170"></canvas>
+
+        <div class="stats-panel">
+            <div class="stat-line"><span>🍖 Đ đói:</span> <span id="uiHunger">100</span>%</div>
+            <div class="stat-line"><span>💧 Đ khát:</span> <span id="uiThirst">100</span>%</div>
+            <div class="stat-line"><span>✨ Đ vui:</span> <span id="uiHappy">100</span>%</div>
+            <div class="stat-line"><span>🧼 V sinh:</span> <span id="uiClean">100</span>%</div>
+            <div class="stat-line" style="grid-column: span 2; justify-content: center; background: rgba(0,0,0,0.12);">
+                <span id="uiLevelBadge">Cấp độ: Lvl 0 (Tiến hóa: Sơ Sinh)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="message-box" id="msgBox">Đang tải vũ trụ Dogotchi...</div>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="tabHome" onclick="switchTab('home')">🏠 NUÔI</button>
+        <button class="tab-btn" id="tabShop" onclick="switchTab('shop')">🏪 SHOP</button>
+        <button class="tab-btn" id="tabGame" onclick="switchTab('game')">🎮 GAME</button>
+        <button class="tab-btn" id="tabEdu" onclick="switchTab('edu')">🧠 HỌC TẬP</button>
+        <button class="tab-btn" style="background:#991b1b; color:white; border-color:#7f1d1d;" onclick="triggerResetUI()">🔄 RESET</button>
+    </div>
+
+    <div class="control-subpanel">
+        <!-- TAB NUÔI -->
+        <div id="panel-home" class="action-grid">
+            <button class="action-btn" onclick="interact('feed')">🍖 ĂN SÚP (Còn <span id="lblFood">0</span>)</button>
+            <button class="action-btn" onclick="interact('drink')">💧 UỐNG NƯỚC (Còn <span id="lblWater">0</span>)</button>
+            <button class="action-btn" style="background:#d97706" onclick="interact('play')">🎾 CHƠI ĐÙA</button>
+			<button class="action-btn" onclick="interact('bath')">🧼 Tmap RỬA (Còn <span id="lblSoap">0</span>)</button>
+            <button class="action-btn" style="background:#7c3aed" onclick="curePet()">💊 CHỮA BỆNH (Còn <span id="lblMed">0</span>)</button>
+            <button class="action-btn" style="background:#4b5563;" id="btnSleep" onclick="toggleSleep()">💤 CHO NGỦ</button>
+        </div>
+
+        <!-- TAB SHOP -->
+        <div id="panel-shop" class="action-grid" style="display:none;">
+            <button class="action-btn" style="background:#059669" onclick="buyItem('food', 15, 'coins')">🍖 Súp (15 Vàng)</button>
+            <button class="action-btn" style="background:#059669" onclick="buyItem('water', 10, 'coins')">💧 Nước (10 Vàng)</button>
+            <button class="action-btn" style="background:#059669" onclick="buyItem('soap', 12, 'coins')">🧼 Xà phòng (12 Vàng)</button>
+            <button class="action-btn" style="background:#ea580c" onclick="buyItem('medicine', 40, 'coins')">💊 Thuốc bệnh (40 Vàng)</button>
+            <button class="action-btn" style="background:#9333ea" id="shHat" onclick="buyItem('hat', 5, 'gems')">🎩 Mũ Vải (5 💎) [Lvl 2+]</button>
+            <button class="action-btn" style="background:#dc2626" id="shFlower" onclick="buyItem('flower', 10, 'gems')">🌹 Khóm Hoa (10 💎) [Lvl 3+]</button>
+            <button class="action-btn" style="background:#0891b2" id="shFence" onclick="buyItem('fence', 2, 'tickets')">🚧 Hàng Rào (2 🎫) [Lvl 4+]</button>
+            <button class="action-btn" style="background:#ca8a04; color:#fff;" id="shUfo" onclick="buyItem('ufo', 5, 'tickets')">🛸 Đĩa Bay (5 🎫) [Lvl 5+]</button>
+        </div>
+
+        <!-- TAB GAME -->
+        <div id="panel-game" class="action-grid" style="display:none;">
+            <button class="action-btn" style="background:#2563eb;" id="btnGame1" onclick="startMiniGame(1)">🦴 HỨNG XƯƠNG</button>
+            <button class="action-btn" style="background:#7c3aed;" id="btnGame2" onclick="startMiniGame(2)">💣 NÉ BOM (Space)</button>
+            <button class="action-btn" style="background:#059669; grid-column: span 2;" id="btnGame3" onclick="startMiniGame(3)">🔨 ĐẬP CHUỘT MÁY (Click)</button>
+            <button class="action-btn" style="background:#ca8a04; color:#fff; grid-column: span 2; font-size:11px;" onclick="activateWheelUI()">🎫 VÒNG QUAY SIÊU CẤP (Tốn 1 Vé)</button>
+        </div>
+
+        <!-- TAB HỌC TẬP -->
+        <div id="panel-edu" style="display:none; text-align:center; color:#fff;">
+            <div id="edu-setup">
+                <span style="font-weight:bold; font-size:12px; color:#fff;">Chọn môn thi tài trí tuệ kiếm Kim Cương:</span><br style="margin-bottom: 6px;">
+                <button class="tab-btn" style="width:120px; background:#2563eb; color:#fff; margin-right:5px;" onclick="startMathMode()">🧮 GIẢI TOÁN</button>
+                <button class="tab-btn" style="width:120px; background:#7c3aed; color:#fff;" onclick="startEnglishMode()">🇬🇧 TIẾNG ANH</button>
+                <div id="math-grades" style="display:none; margin-top:8px;">
+                    <button class="tab-btn" style="width:55px;" onclick="generateMath(1)">Lớp 1</button>
+                    <button class="tab-btn" style="width:55px;" onclick="generateMath(2)">Lớp 2</button>
+                    <button class="tab-btn" style="width:55px;" onclick="generateMath(3)">Lớp 3</button>
+                    <button class="tab-btn" style="width:55px;" onclick="generateMath(4)">Lớp 4</button>
+                    <button class="tab-btn" style="width:55px;" onclick="generateMath(5)">Lớp 5</button>
+                </div>
+            </div>
+            <div id="edu-core" style="display:none;">
+                <span id="edu-question" style="font-size:13px; font-weight:bold; color:#fff;">Câu hỏi?</span><br>
+                <input type="text" id="edu-ans" class="interactive-input" placeholder="Nhập kết quả..."><br>
+                <button class="action-btn" style="background:#10b981; width:100px; margin-right: 5px;" onclick="checkEduAnswer()">Nộp Bài</button>
+                <button class="action-btn" style="background:#64748b; width:80px;" onclick="cancelEdu()">Hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function sound(type) {
+        try {
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (type === 'coin') {
+                osc.frequency.setValueAtTime(950, audioCtx.currentTime); gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.07);
+            } else if (type === 'jump') {
+                osc.frequency.setValueAtTime(280, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.09);
+                gain.gain.setValueAtTime(0.03, audioCtx.currentTime); osc.start(); osc.stop(audioCtx.currentTime + 0.09);
+            } else if (type === 'boom') {
+                osc.frequency.setValueAtTime(100, audioCtx.currentTime); gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        } catch(e){}
+    }
+
+    let saveState = {
+        petType: null, hunger: 100, thirst: 100, happy: 100, clean: 100,
+        age: 0, coins: 60, gems: 5, tickets: 2, isAlive: true, lastTick: Date.now(),
+        inventory: { food: 3, water: 3, soap: 2, medicine: 1, hasHat: false, hasFlower: false, hasFence: false, hasUfo: false },
+        isSleeping: false, isSick: false
+    };
+
+    if (localStorage.getItem('dogotchi_v12_hyper')) {
+        saveState = JSON.parse(localStorage.getItem('dogotchi_v12_hyper'));
+    }
+
+    let dogX = 180, dogY = 120, dogAction = saveState.isSleeping ? 'sleep' : 'idle', frame = 0, dir = 1, targetX = 180;
+    let activeGame = 0, gameScore = 0, gameObjects = [], gameTimer = null;
+    let dogJumpY = 0, jumpVelocity = 0, isGrounded = true;
+    
+    let weatherList = ['sunny', 'stormy', 'snowy'];
+    let currentWeather = 'sunny';
+    let weatherParticles = [];
+    let flashActive = false;
+    let santaX = -100; 
+    let ufoAngle = 0;
+    let actionBubble = "";
+
+    let isWheelSpinning = false;
+    let wheelAngle = 0;
+    let wheelSpeed = 0;
+    let wheelItems = [
+        { name: "200 Vàng 💰", f: () => saveState.coins += 200 },
+        { name: "6 Kim Cương 💎", f: () => saveState.gems += 6 },
+        { name: "3 Bình Thuốc 💊", f: () => saveState.inventory.medicine += 3 },
+        { name: "40 Vàng 💰", f: () => saveState.coins += 40 },
+        { name: "4 Vé Quay 🎫", f: () => saveState.tickets += 4 },
+        { name: "2 Kim Cương 💎", f: () => saveState.gems += 2 }
+    ];
+
+    let birthdayCountdown = 0;
+    let candleLit = true;
+    let birthdayPrizeText = "";
+
+    let isResetOverlayActive = false;
+    let resetCursorPos = 0; 
+    let eduMode = '';
+    let currentMathLvl = 1;
+    let correctStrAnswer = '';
+
+    const englishDict = [
+        { q: "Quả chuối", a: "banana" }, { q: "Con mèo", a: "cat" }, { q: "Máy tính", a: "computer" }, 
+        { q: "Màu xanh", a: "blue" }, { q: "Cái bút", a: "pen" }, { q: "Mặt trời", a: "sun" }
+    ];
+
+    function initParticles() {
+        weatherParticles = [];
+        for(let i=0; i<50; i++) {
+            weatherParticles.push({ x: Math.random() * 400, y: Math.random() * 170, s: 1 + Math.random() * 2, w: Math.random() });
+        }
+    }
+	// --- MODULE: THÁC BÀ WEATHER SYNC ---
+async function syncWeatherWithThacBa() {
+    const API_KEY = 'YOUR_API_KEY'; // Đăng ký tại openweathermap.org
+    const city = 'Thac Ba, VN';
+    
+    try {
+        const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}`);
+        const data = await response.json();
+        const weatherCondition = data.weather[0].main; // Rain, Clear, Clouds, etc.
+
+        // Logic "phi logic": Thú cưng phản ứng với thời tiết
+        if (weatherCondition === 'Rain') {
+            currentWeather = 'stormy'; // Chuyển sang trạng thái mưa
+            triggerPetSecretMessage("Trời Thác Bà đang mưa buồn quá... Cùng mình ngồi nghe tiếng mưa rơi nhé?");
+        } else if (weatherCondition === 'Clear') {
+            currentWeather = 'sunny';
+            triggerPetSecretMessage("Ngoài trời nắng đẹp quá! Có muốn ra ngoài làm chút gì đó không?");
+        }
+    } catch (err) {
+        console.log("Đang kết nối với bầu trời Thác Bà...");
+    }
+}
+
+// Hàm kích hoạt câu nói truyền cảm hứng ngẫu nhiên
+function triggerPetSecretMessage(message) {
+    const msgBox = document.getElementById('msgBox');
+    msgBox.style.borderColor = "#f59e0b"; // Đổi màu viền cho khác biệt
+    msgBox.innerText = `💬 "${message}"`;
+    
+    // Tự động quay lại sau 10 giây
+    setTimeout(() => { msgBox.style.borderColor = "#475569"; }, 10000);
+}
+
+// Gọi hàm cập nhật mỗi 10 phút
+setInterval(syncWeatherWithThacBa, 60000);
+	
+    initParticles();
+
+    // Vòng lặp tính toán cốt lõi thời gian thực
+    setInterval(() => {
+        if (!saveState.isAlive || activeGame > 0 || isWheelSpinning || birthdayCountdown > 0 || saveState.petType === null) return;
+        
+        // Cơ chế đổ bệnh ngẫu nhiên dựa trên vệ sinh/đói
+        if (!saveState.isSick && (saveState.clean < 25 || saveState.hunger < 25) && Math.random() > 0.8) {
+            saveState.isSick = true;
+            document.getElementById('msgBox').innerText = "🤢 Môi trường không đảm bảo khiến bé nhiễm bệnh! Cho bé uống thuốc (Tab Shop) ngay.";
+        }
+
+        // Đĩa bay tự động hồi phục niềm vui
+        if (saveState.inventory.hasUfo && saveState.happy < 100) {
+            saveState.happy = Math.min(100, saveState.happy + 3);
+        }
+
+        // Logic ẩn nấp chuồng khi trời bão hoặc đang ngủ
+        let isRainOrSleep = (saveState.isSleeping || currentWeather === 'stormy');
+        if (isRainOrSleep) {
+            if (dogX > 38) {
+                dogAction = 'walk'; dir = -1; 
+                dogX -= (currentWeather === 'stormy') ? 20 : 4; 
+            } else {
+                dogX = 35;
+                if (saveState.isSleeping) dogAction = 'sleep';
+                else { dogAction = 'shelter_head'; dir = 1; }
+            }
+        }
+        if (!isRainOrSleep && dogAction === 'shelter_head') dogAction = 'idle';
+
+        // Tự động di chuyển dạo chơi ngẫu nhiên
+        if (!isRainOrSleep && dogAction === 'idle' && Math.random() < 0.2) {
+            targetX = Math.floor(Math.random() * 150) + 160; dogAction = 'walk'; dir = targetX > dogX ? 1 : -1;
+        }
+
+        // Khấu trừ chỉ số sinh tồn theo thời gian thực
+        const now = Date.now();
+        const minutesPassed = (now - saveState.lastTick) / (1000 * 60*60);
+        saveState.lastTick = now;
+
+        if (minutesPassed > 0) {
+            saveState.age += parseFloat(minutesPassed.toFixed(4));
+            let mult = saveState.isSleeping ? 0.35 : 1.0;
+            if (saveState.isSick) mult *= 2.2;
+            
+            saveState.hunger = Math.max(0, saveState.hunger - minutesPassed * 1 * mult);
+            saveState.thirst = Math.max(0, saveState.thirst - minutesPassed * 2 * mult);
+            if (!saveState.isSleeping) {
+                saveState.happy = Math.max(0, saveState.happy - minutesPassed * 10);
+                saveState.clean = Math.max(0, saveState.clean - minutesPassed * 8);
+            }
+            
+            // Phát hiện tăng cấp độ chẵn để tổ chức sinh nhật đại tiệc
+            let curFloor = Math.floor(saveState.age);
+            if (curFloor > 0 && curFloor > Math.floor(saveState.age - minutesPassed)) {
+                triggerBirthdayParty(curFloor);
+            }
+        }
+        save(); updateUI();
+
+        if(saveState.hunger <= 0 & saveState.thirst <= 0 & saveState.clean <= 0) {
+            saveState.isAlive = false; save();
+            document.getElementById('msgBox').innerText = "🪦 Thú cưng đã kiệt sức vĩnh viễn. Hãy bấm nút RESET đỏ bên dưới để hồi sinh lại dòng giống.";
+        }
+    }, 1000);
+
+    // Thay đổi thời tiết ngẫu nhiên mỗi 1200 giây
+    setInterval(() => {
+        if (activeGame > 0 || isWheelSpinning || saveState.petType === null) return;
+        currentWeather = weatherList[Math.floor(Math.random() * weatherList.length)];
+        if (currentWeather === 'stormy') document.getElementById('msgBox').innerText = "⛈️ SÉT ĐÁNH LIÊN HỒI! Thú cưng tự động kích hoạt bản năng chạy trốn vào chuồng trú ẩn khẩn cấp!";
+        else if (currentWeather === 'snowy') document.getElementById('msgBox').innerText = "❄️ TUYẾT RƠI MÙA ĐÔNG: Không gian đóng băng lý tưởng. Xe Noel bay phát quà lấp lánh bầu trời!";
+        else document.getElementById('msgBox').innerText = "☀️ THỜI TIẾT ĐẸP TRỜI: Ánh nắng ban mai rực rỡ, thích hợp để dạo chơi tăng thể lực.";
+    }, 1200000);
+
+    function triggerBirthdayParty(newLvl) {
+        birthdayCountdown = 250; candleLit = true; saveState.isSleeping = false;
+        dogAction = 'walk'; targetX = 220; dir = targetX > dogX ? 1 : -1;
+        let roll = Math.random();
+        if (roll < 0.4) { saveState.gems += 6; birthdayPrizeText = "6 Kim Cương 💎"; }
+        else if (roll < 0.75) { saveState.tickets += 3; birthdayPrizeText = "3 Vé Siêu Cấp 🎫"; }
+        else { saveState.coins += 200; saveState.gems += 3; birthdayPrizeText = "200 Vàng 💰 & 3 💎"; }
+        switchTab('home');
+    }
+
+    function activateWheelUI() {
+        if (saveState.tickets < 1) { document.getElementById('msgBox').innerText = "❌ Không đủ Vé Quay 🎫! Hãy vào mục Học Tập để giải toán thi tài kiếm Vé."; return; }
+        if (isWheelSpinning) return;
+        saveState.tickets--; save(); updateUI();
+        isWheelSpinning = true; wheelSpeed = 0.35 + Math.random() * 0.25;
+        document.getElementById('msgBox').innerText = "🎰 VÒNG QUAY MA TRẬN ĐANG QUAY VẬT LÝ TUYẾN TÍNH...";
+    }
+
+    // HÀM VẼ ĐỒ HỌA THÚ CƯNG THEO TIẾN HÓA (CORE UPGRADE)
+    function drawPetBody(bob, isMoving, f) {
+        ctx.fillStyle = "#0f172a";
+        let petLvl = Math.floor(saveState.age);
+        
+        // Định dạng kích thước dựa theo cấp tiến hóa
+        let scaleSize = 1.0;
+        if (petLvl >= 3 && petLvl <= 5) scaleSize = 1.25; // Trưởng thành
+        else if (petLvl >= 6) scaleSize = 1.45;          // Huyền thoại
+
+        ctx.save();
+        ctx.scale(scaleSize, scaleSize);
+
+        // Hiệu ứng Hào quang Aura Lượng tử cho cấp Huyền Thoại
+        if (petLvl >= 6 && f % 6 < 3) {
+            ctx.strokeStyle = "rgba(15,23,42,0.3)"; ctx.lineWidth = 3;
+            ctx.strokeRect(-25, -48 + bob, 48, 52);
+        }
+
+        if (saveState.petType === 1) { // CHÓ
+            ctx.fillRect(-18, -22 + bob, 30, 18); ctx.fillRect(2, -36 + bob, 18, 18); ctx.fillRect(-3, -36 + bob, 5, 10);
+            if(petLvl >= 3) { ctx.fillRect(-22, -20 + bob, 5, 12); } // Tiến hóa thêm đuôi to
+        } else if (saveState.petType === 2) { // MÈO
+            ctx.fillRect(-16, -22 + bob, 28, 16); ctx.fillRect(0, -36 + bob, 16, 16); ctx.fillRect(0, -41 + bob, 4, 5); ctx.fillRect(12, -41 + bob, 4, 5);
+            if(petLvl >= 3) { ctx.fillRect(-4, -43 + bob, 24, 2); } // Tiến hóa thêm tai liên kết công nghệ
+        } else if (saveState.petType === 3) { // GẤU
+            ctx.fillRect(-20, -24 + bob, 34, 20); ctx.fillRect(-4, -40 + bob, 20, 20); ctx.fillRect(-4, -44 + bob, 5, 4); ctx.fillRect(11, -44 + bob, 5, 4);
+        } else if (saveState.petType === 4) { // THỎ
+            ctx.fillRect(-14, -22 + bob, 26, 16); ctx.fillRect(0, -34 + bob, 14, 14); ctx.fillRect(1, -50 + bob, 4, 16); ctx.fillRect(9, -50 + bob, 4, 16);
+        } else if (saveState.petType === 5) { // RỒNG CYBER
+            ctx.fillRect(-22, -22 + bob, 32, 18); ctx.fillRect(0, -38 + bob, 18, 18); ctx.fillRect(-24, -32 + bob, 6, 6);
+            if(petLvl >= 3) { ctx.fillRect(-15, -44 + bob, 10, 10); } // Tiến hóa thêm đôi cánh rồng lớn
+        }
+
+        // Chân di chuyển liên tục khi đi bộ
+        let legOffset = isMoving ? Math.sin(f * 0.4) * 4 : 0;
+        ctx.fillRect(-12, -4 + legOffset, 5, 7); ctx.fillRect(2, -4 - legOffset, 5, 7);
+        ctx.restore();
+    }
+
+    function drawDog(x, y, f) {
+        ctx.save();
+        if (dogAction === 'shelter_head') {
+            ctx.translate(45, 115); ctx.fillStyle = "#0f172a";
+            ctx.fillRect(-4, -26, 18, 18);
+            ctx.fillStyle = (f % 40 < 5) ? "#0f172a" : "#fff"; ctx.fillRect(4, -18, 4, 4);
+            ctx.restore();
+            return;
+        }
+        let sleepYOffset = (dogAction === 'sleep') ? 8 : 0;
+        ctx.translate(x, y + dogJumpY + sleepYOffset);
+        ctx.scale(dir, 1);
+        let isMoving = (dogAction==='walk' || activeGame === 1 || activeGame === 2);
+        let bob = isMoving ? Math.sin(f * 0.45) * 3 : 0;
+        
+        drawPetBody(bob, isMoving, f);
+        
+        if (saveState.inventory.hasHat && dogAction !== 'sleep') {
+            ctx.fillStyle = "#0f172a"; ctx.fillRect(-2, -46 + bob, 18, 8);
+        }
+        ctx.restore();
+
+        // Bong bóng hội thoại biểu cảm
+        if ((saveState.isSleeping || actionBubble !== "") && dogAction !== 'walk' && activeGame === 0) {
+            let bX = x - 4;
+            let bY = y + dogJumpY - 48 + (saveState.isSleeping ? 8 : 0) + Math.sin(frame * 0.12) * 2;
+            ctx.font = "12px Arial"; ctx.fillStyle = "#0f172a";
+            ctx.fillText(saveState.isSleeping ? "💤" : actionBubble, bX, bY);
+        }
+    }
+
+    function render() {
+        frame++; ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const c = "#0f172a";
+// --- BỔ SUNG: MODULE AI TỰ HỌC (Pro-Max) ---
+function learnUserBehavior() {
+    let now = new Date().getHours();
+    // Nếu bạn thường xuyên tương tác lúc đêm muộn (22h - 2h)
+    if (now >= 22 || now <= 2) {
+        saveState.sleepShift = true; // Thú cưng chuyển giờ ngủ
+        document.getElementById('msgBox').innerText = "🤖 AI Pro: Bé đã học được thói quen thức khuya của bạn!";
+    }
+}
+
+// --- BỔ SUNG: HIỆU ỨNG PARALLAX V-AR (Pro-Max) ---
+// Thêm vào trong hàm render()
+function renderProEffects(mouseX, mouseY) {
+    let offsetX = (mouseX - 200) / 20;
+    let offsetY = (mouseY - 85) / 20;
+    
+    // Áp dụng độ lệch vào tọa độ vẽ của thú cưng
+    ctx.save();
+    ctx.translate(offsetX, offsetY); 
+    // ... Vẽ thú cưng ở đây với chiều sâu mới
+    ctx.restore();
+}
+        // MÀN HÌNH CHỌN THÚ NUÔI BAN ĐẦU KHỞI TẠO NGUYÊN BẢN
+        if (saveState.petType === null) {
+            ctx.fillStyle = "#92a686"; ctx.fillRect(0, 0, 400, 170);
+            ctx.fillStyle = c; ctx.font = "bold 12px Arial"; ctx.fillText("CHỌN THÚ NUÔI SIÊU CẤP ĐỂ KHỞI ĐẦU VŨ TRỤ", 55, 30);
+            for(let i=1; i<=5; i++) {
+                let bx = 12 + (i-1) * 76; ctx.strokeRect(bx, 55, 70, 85);
+                ctx.font = "bold 9px Arial"; ctx.fillText(["1.CHÓ","2.MÈO","3.GẤU","4.THỎ","5.RỒNG"][i-1], bx + 15, 72);
+                ctx.save(); ctx.translate(bx + 35, 125); saveState.petType = i; drawPetBody(0,false,frame); ctx.restore();
+            }
+            saveState.petType = null; requestAnimationFrame(render); return;
+        }
+
+        let hr = new Date().getHours(); let isNight = (hr >= 18 || hr < 6);
+        if (currentWeather === 'stormy' && Math.random() > 0.98 && activeGame === 0 && !isResetOverlayActive) {
+            flashActive = true; setTimeout(() => flashActive = false, 50);
+        }
+
+        ctx.fillStyle = flashActive ? "#fff" : (isNight ? "#6c7d63" : "#92a686");
+        ctx.fillRect(0, 0, 400, 170);
+        ctx.fillStyle = c;
+
+        // Bầu trời mặt trời / mặt trăng vẽ mượt mà
+        if (!isNight) {
+            let sR = 14 + Math.sin(frame * 0.03) * 1;
+            ctx.beginPath(); ctx.arc(60, 35, sR, 0, Math.PI * 2); ctx.fill();
+            for(let a=0; a<8; a++) {
+                let ang = a * (Math.PI/4) + frame*0.008;
+                ctx.beginPath(); ctx.moveTo(60 + Math.cos(ang)*18, 35 + Math.sin(ang)*18);
+                ctx.lineTo(60 + Math.cos(ang)*25, 35 + Math.sin(ang)*25); ctx.stroke();
+            }
+        } else {
+            ctx.beginPath(); ctx.arc(60, 35, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = flashActive ? "#fff" : (isNight ? "#6c7d63" : "#92a686");
+            ctx.beginPath(); ctx.arc(67, 35, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = c;
+        }
+
+        // Đám mây trôi
+        //ctx.fillRect(170 + Math.sin(frame*0.004)*25, 16, 40, 8);
+        //ctx.fillRect(180 + Math.sin(frame*0.004)*25, 11, 20, 10);
+
+        // Mặt đất chuồng trại
+        ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.strokeRect(10, 80, 50, 45); 
+        ctx.beginPath(); ctx.moveTo(5, 80); ctx.lineTo(35, 55); ctx.lineTo(65, 80); ctx.closePath(); ctx.stroke();
+        ctx.strokeRect(22, 100, 22, 25);
+        ctx.beginPath(); ctx.moveTo(0, 125); ctx.lineTo(400, 125); ctx.stroke();
+
+        // Khối trang trí mua thêm từ Shop
+        if (saveState.inventory.hasFlower) { ctx.fillRect(146, 115, 6, 10); ctx.fillRect(144, 112, 10, 3); }
+        if (saveState.inventory.hasFence) { ctx.fillRect(100, 110, 2, 15); ctx.fillRect(115, 110, 2, 15); ctx.fillRect(98, 114, 20, 2); }
+        if (saveState.inventory.hasUfo) {
+            ufoAngle += 0.025;
+            let ufX = 270 + Math.cos(ufoAngle) * 40; let ufY = 30 + Math.sin(ufoAngle * 2) * 6;
+            ctx.font = "45px Arial"; ctx.fillText("🛸", ufX, ufY);
+        }
+
+        // Hạt thời tiết Tuyết/Mưa Bão lượng tử
+        if (currentWeather === 'snowy') {
+            ctx.font = "11px Arial"; ctx.fillText("🎄", 340, 68); ctx.fillRect(345, 120, 4, 5);
+            santaX += 1.5; if(santaX > 410) santaX = -80;
+            ctx.font = "18px Arial"; ctx.fillText("🎅🛷", santaX, 40);
+            weatherParticles.forEach(p => {
+                p.y += p.s * 0.5; p.x += Math.sin(frame*0.01 + p.w) * 0.4;
+                ctx.fillRect(p.x, p.y, 2, 2); if(p.y > 124) { p.y = 0; p.x = Math.random()*400; }
+            });
+        } else if (currentWeather === 'stormy' && activeGame === 0 && !isWheelSpinning && birthdayCountdown === 0) {
+            weatherParticles.forEach(p => {
+                p.y += p.s * 2.6; p.x -= 1.5; ctx.fillRect(p.x, p.y, 1.2, 8);
+                if(p.y > 124) { p.y = 0; p.x = Math.random()*400; }
+            });
+        }
+
+        // XỬ LÝ ĐA DIỆN CÁC TRẠNG THÁI KHÁC
+        if (isWheelSpinning) {
+            ctx.save(); ctx.translate(200, 85);
+            wheelAngle += wheelSpeed; wheelSpeed *= 0.98; ctx.rotate(wheelAngle);
+            let segs = wheelItems.length;
+            for (let i = 0; i < segs; i++) {
+                let bAng = (Math.PI * 2) / segs; ctx.strokeStyle = c;
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 52, i*bAng, (i+1)*bAng); ctx.closePath(); ctx.stroke();
+                ctx.save(); ctx.rotate(i * bAng + bAng/2);
+                ctx.font = "bold 8px Arial"; ctx.fillText(wheelItems[i].name.split(" ")[0], 20, 3);
+                ctx.restore();
+            }
+            ctx.restore();
+            ctx.beginPath(); ctx.moveTo(200, 22); ctx.lineTo(196, 12); ctx.lineTo(204, 12); ctx.closePath(); ctx.fill();
+
+            if (wheelSpeed < 0.002) {
+                isWheelSpinning = false;
+                let norm = (Math.PI * 2.5 - (wheelAngle % (Math.PI * 2))) % (Math.PI * 2);
+                let idx = Math.floor((norm / (Math.PI * 2)) * wheelItems.length) % wheelItems.length;
+                let prize = wheelItems[idx]; prize.f(); sound('coin'); save(); updateUI();
+                document.getElementById('msgBox').innerHTML = `🎉 VÒNG QUAY KHÉP LẠI! <br>Bé rinh ngay phần quà may mắn: ${prize.name}!`;
+            }
+        } else if (birthdayCountdown > 0) {
+            birthdayCountdown--;
+            ctx.font = "bold 12px Arial"; ctx.fillText("🎂 ĐẠI TIỆC SINH NHẬT TIẾN HÓA!", 110, 25);
+            ctx.fillRect(210, 110, 25, 15); ctx.strokeRect(213, 100, 19, 10);
+            if (candleLit) {
+                ctx.fillRect(222, 93, 2, 7); if (frame % 8 < 4) ctx.fillRect(221, 89, 4, 4);
+                if (dogX >= 195) { candleLit = false; sound('jump'); }
+            }
+            if (dogAction === 'walk' && dogX < 196) dogX += 2.5; else dogAction = 'idle';
+            drawDog(dogX, dogY, frame);
+            if (!candleLit) { ctx.font = "bold 10px Arial"; ctx.fillText(`🎁 QUÀ TẶNG: ${birthdayPrizeText}`, 170, 75); }
+            if (birthdayCountdown === 1) { birthdayCountdown = 0; dogAction = 'idle'; }
+        } else if (isResetOverlayActive) {
+            ctx.fillStyle = "rgba(146,166,134,0.98)"; ctx.fillRect(30, 25, 340, 120);
+            ctx.strokeRect(34, 29, 332, 112); ctx.fillStyle = c;
+            ctx.font = "bold 12px Arial"; ctx.fillText("XÁC NHẬN RESET LẠI TOÀN BỘ GAME?", 80, 60);
+            ctx.strokeRect(75, 95, 95, 24); ctx.fillText(" KHÔNG (HỦY)", 82, 111);
+            ctx.strokeRect(230, 95, 95, 24); ctx.fillText(" CÓ (XÓA HẾT)", 235, 111);
+            if (resetCursorPos === 0) ctx.fillRect(64, 103, 6, 6); else ctx.fillRect(220, 103, 6, 6);
+        } else {
+            // GAMEPLAY BÌNH THƯỜNG HOẶC MINI-GAME
+            if (activeGame === 0 && dogAction === 'walk' && currentWeather !== 'stormy' && !saveState.isSleeping) {
+                if (Math.abs(dogX - targetX) > 2) dogX += dir * 1.5; else dogAction = 'idle';
+            }
+            if (saveState.isAlive) drawDog(dogX, dogY, frame);
+
+            // LOGIC CÁC MINI-GAME V12.0
+            if (activeGame === 1) {
+                ctx.font = "bold 11px Arial"; ctx.fillText(`HỨNG XƯƠNG - SCORE: ${gameScore}`, 10, 22);
+                for (let i = gameObjects.length - 1; i >= 0; i--) {
+                    let b = gameObjects[i]; b.y += b.speed; ctx.fillRect(b.x, b.y, 8, 5);
+                    if (b.y >= 110 && b.y <= 125 && Math.abs(b.x - dogX) < 24) { gameObjects.splice(i,1); gameScore+=5; saveState.coins+=4; sound('coin'); continue; }
+                    if (b.y > 130) gameObjects.splice(i,1);
+                }
+            } else if (activeGame === 2) {
+                ctx.font = "bold 11px Arial"; ctx.fillText(`NÉ BOM CHUẨN XÁC - SCORE: ${gameScore}`, 10, 22);
+                dogJumpY += jumpVelocity; jumpVelocity += 0.65; if (dogJumpY >= 0) { dogJumpY = 0; isGrounded = true; }
+                for (let i = gameObjects.length - 1; i >= 0; i--) {
+                    let o = gameObjects[i]; o.x -= o.speed; ctx.fillRect(o.x, 115, 10, 10);
+                    if (o.x > dogX - 16 && o.x < dogX + 16 && (dogY + dogJumpY) > 95) { sound('boom'); stopMiniGame(); break; }
+                    if (o.x < -10) { gameObjects.splice(i,1); gameScore+=10; saveState.coins+=8; sound('coin'); }
+                }
+            } else if (activeGame === 3) {
+                // GAME MỚI 3: ĐẬP CHUỘT CYBER (WHACK A MOLE)
+                ctx.font = "bold 11px Arial"; ctx.fillText(`ĐẬP CHUỘT MÁY - SCORE: ${gameScore}`, 10, 22);
+                gameObjects.forEach(m => {
+                    if (m.show > 0) {
+                        ctx.strokeRect(m.x, m.y, 22, 22);
+                        ctx.font = "11px Arial"; ctx.fillText("🤖", m.x+2, m.y+15);
+                        m.show--;
+                    } else if (Math.random() > 0.985) { m.show = Math.floor(Math.random()*40) + 30; }
+                });
+            }
+        }
+        requestAnimationFrame(render);
+    }
+
+    // Xử lý Click màn hình cho tương tác, Đập chuột, Reset
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+        
+        if (isResetOverlayActive) {
+            if (mx >= 75 && mx <= 170 && my >= 95 && my <= 119) { isResetOverlayActive = false; sound('jump'); }
+            if (mx >= 230 && mx <= 325 && my >= 95 && my <= 119) { localStorage.removeItem('dogotchi_v12_hyper'); location.reload(); }
+            return;
+        }
+
+        if (saveState.petType === null) {
+            for(let i=1; i<=5; i++) {
+                let bx = 12 + (i-1) * 76;
+                if (mx > bx && mx < bx + 70) {
+                    saveState.petType = i; saveState.lastTick = Date.now(); sound('jump');
+                    document.getElementById('msgBox').innerText = "Vũ trụ đã gán định dạng sinh vật thành công! Bắt đầu nuôi dưỡng bé tiến hóa nào.";
+                    save(); break;
+                }
+            }
+            return;
+        }
+
+        if (activeGame === 3) {
+            gameObjects.forEach(m => {
+                if (m.show > 0 && mx >= m.x && mx <= m.x + 22 && my >= m.y && my <= m.y + 22) {
+                    m.show = 0; gameScore += 15; saveState.coins += 10; sound('coin');
+                }
+            });
+        }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        if (isResetOverlayActive) { if (mx < 200) resetCursorPos = 0; else resetCursorPos = 1; return; }
+        if (activeGame === 1 && saveState.isAlive && saveState.petType !== null) dogX = Math.max(25, Math.min(375, mx));
+    });
+
+    // HỌC TẬP TUYỆT ĐỈNH TRÍ TUỆ
+    function startMathMode() { document.getElementById('math-grades').style.display = 'block'; eduMode = 'math'; }
+    function startEnglishMode() {
+        document.getElementById('math-grades').style.display = 'none'; document.getElementById('edu-setup').style.display = 'none';
+        document.getElementById('edu-core').style.display = 'block'; eduMode = 'english';
+        let word = englishDict[Math.floor(Math.random() * englishDict.length)];
+        document.getElementById('edu-question').innerText = `Dịch sang tiếng Anh: "${word.q}" viết là gì?`;
+        correctStrAnswer = word.a; document.getElementById('edu-ans').value = "";
+    }
+    function generateMath(level) {
+        currentMathLvl = level; document.getElementById('edu-setup').style.display = 'none'; document.getElementById('edu-core').style.display = 'block';
+        let a = Math.floor(Math.random() * (level * 9)) + 4; let b = Math.floor(Math.random() * (level * 7)) + 3;
+        if (level === 1) { document.getElementById('edu-question').innerText = `Tính nhẩm nhanh: ${a} + ${b} = ?`; correctStrAnswer = String(a + b); }
+        else if (level === 2) { document.getElementById('edu-question').innerText = `Tính nhẩm nhanh: ${a * 2} - ${b} = ?`; correctStrAnswer = String((a * 2) - b); }
+        else if (level === 3) { document.getElementById('edu-question').innerText = `Bảng cửu chương: ${a} x ${b} = ?`; correctStrAnswer = String(a * b); }
+        else if (level === 4) { document.getElementById('edu-question').innerText = `Tìm x ẩn số: x * ${a} = ${a * b}`; correctStrAnswer = String(b); }
+        else { document.getElementById('edu-question').innerText = `Tính giá trị biểu thức: ${a} + ${b} x 2 = ?`; correctStrAnswer = String(a + b * 2); }
+        document.getElementById('edu-ans').value = "";
+    }
+    function checkEduAnswer() {
+        let userAns = document.getElementById('edu-ans').value.trim().toLowerCase(); if (userAns === "") return;
+        if (userAns === correctStrAnswer) {
+            sound('jump');
+            if (eduMode === 'english' || (eduMode === 'math' && currentMathLvl >= 4)) {
+                saveState.gems += 2; saveState.tickets += 1;
+                document.getElementById('msgBox').innerText = "🎉 THIÊN TÀI! Bạn đã giải mã đáp án khó, thưởng ngay 2 Kim Cương 💎 và 1 Vé Thưởng 🎫!";
+            } else {
+                saveState.coins += 40; document.getElementById('msgBox').innerText = "🎉 Chuẩn xác! Bạn nhận được phần thưởng khích lệ là 40 Vàng 💰!";
+            }
+            saveState.happy = Math.min(100, saveState.happy + 20);
+        } else {
+            sound('boom'); document.getElementById('msgBox').innerText = `❌ Sai mất rồi! Đáp án chính xác là: ${correctStrAnswer}. Thử sức lại nhé!`;
+        }
+        cancelEdu(); save(); updateUI();
+    }
+    function cancelEdu() {
+        document.getElementById('edu-setup').style.display = 'block';
+        document.getElementById('edu-core').style.display = 'none'; document.getElementById('math-grades').style.display = 'none';
+    }
+
+    // GIAO DỊCH VÀ CHĂM SÓC
+    function buyItem(item, price, currency) {
+        let petLvl = Math.floor(saveState.age);
+        if (item === 'hat' && petLvl < 2) { document.getElementById('msgBox').innerText = "🔒 Mũ trang trí mở khóa từ Cấp 2 trở lên!"; return; }
+        if (item === 'flower' && petLvl < 3) { document.getElementById('msgBox').innerText = "🔒 Khóm hoa mở khóa từ Cấp 3 trở lên!"; return; }
+        if (item === 'fence' && petLvl < 4) { document.getElementById('msgBox').innerText = "🔒 Hàng rào mở khóa từ Cấp 4 trở lên!"; return; }
+        if (item === 'ufo' && petLvl < 5) { document.getElementById('msgBox').innerText = "🔒 Đĩa Bay UFO mở khóa từ Cấp 5 trở lên!"; return; }
+
+        if (saveState[currency] < price) { document.getElementById('msgBox').innerText = "❌ Bạn không có đủ ngân sách tiền tệ!"; return; }
+        if (['hat', 'flower', 'fence', 'ufo'].includes(item) && saveState.inventory['has' + item.charAt(0).toUpperCase() + item.slice(1)]) {
+            document.getElementById('msgBox').innerText = "💎 Đồ trang trí vĩnh viễn này bạn đã sở hữu rồi."; return;
+        }
+        saveState[currency] -= price; sound('coin');
+        if (['hat', 'flower', 'fence', 'ufo'].includes(item)) saveState.inventory['has' + item.charAt(0).toUpperCase() + item.slice(1)] = true;
+        else saveState.inventory[item]++;
+        save(); updateUI(); document.getElementById('msgBox').innerText = "🛒 Giao dịch thành công tốt đẹp! Vật phẩm đã có hiệu lực.";
+    }
+
+    function interact(type) {
+        if (!saveState.isAlive || saveState.isSleeping || currentWeather === 'stormy' || saveState.petType === null) return;
+        if (type === 'feed' && saveState.inventory.food > 0) { saveState.inventory.food--; saveState.hunger = Math.min(100, saveState.hunger + 35); actionBubble = "🍖"; }
+        else if (type === 'drink' && saveState.inventory.water > 0) { saveState.inventory.water--; saveState.thirst = Math.min(100, saveState.thirst + 35); actionBubble = "💧"; }
+        else if (type === 'bath' && saveState.inventory.soap > 0) { saveState.inventory.soap--; saveState.clean = 100; actionBubble = "🧼"; }
+        else if (type === 'play') { dogAction = 'walk'; saveState.happy = Math.min(100, saveState.happy + 40); actionBubble = "🎾"; }
+        else { document.getElementById('msgBox').innerText = "❌ Túi dự trữ vật phẩm này đã cạn. Hãy vào Shop bổ sung thêm."; return; }
+        sound('coin'); save(); 
+        setTimeout(() => { if (saveState.isAlive) { dogAction = 'idle'; actionBubble = ""; } }, 1800);
+    }
+
+    function curePet() {
+        if (!saveState.isAlive || !saveState.isSick) return;
+        if (saveState.inventory.medicine > 0) {
+            saveState.inventory.medicine--; saveState.isSick = false; sound('jump'); actionBubble = "💊";
+            document.getElementById('msgBox').innerText = "💊 Cho bé uống thần dược thành công, các mầm mống virus biến mất hoàn toàn!";
+            save(); updateUI(); setTimeout(() => actionBubble = "", 2000);
+        }
+    }
+
+    function toggleSleep() {
+        if(!saveState.isAlive || activeGame > 0 || saveState.petType === null) return;
+        saveState.isSleeping = !saveState.isSleeping;
+        if(saveState.isSleeping) {
+            document.getElementById('btnSleep').innerText = "☀️ ĐÁNH THỨC"; document.getElementById('msgBox').innerText = "💤 Bé đã chìm vào giấc ngủ phục hồi thể trạng.";
+        } else {
+            dogAction = 'idle'; document.getElementById('btnSleep').innerText = "💤 CHO NGỦ"; document.getElementById('msgBox').innerText = "☀️ Bình minh! Bé đã dậy và háo hức chờ bạn.";
+        }
+        save();
+    }
+
+    function startMiniGame(id) {
+        if (!saveState.isAlive || saveState.isSleeping || saveState.petType === null || currentWeather === 'stormy') return;
+        if (activeGame > 0) { stopMiniGame(); return; }
+        activeGame = id; gameScore = 0; gameObjects = [];
+        document.getElementById(`btnGame${id}`).innerText = "🛑 DỪNG G";
+        
+        if (id === 1) gameTimer = setInterval(() => gameObjects.push({ x: Math.random()*300+40, y: 0, speed: 3.5 }), 750);
+        else if (id === 2) gameTimer = setInterval(() => gameObjects.push({ x: 400, speed: 4.8 + Math.random()*1.2 }), 1000);
+        else if (id === 3) {
+            // Khởi tạo các lỗ chuột cho game 3
+            gameObjects = [
+                {x: 80, y: 55, show: 0}, {x: 190, y: 55, show: 0}, {x: 300, y: 55, show: 0},
+                {x: 80, y: 95, show: 0}, {x: 190, y: 95, show: 0}, {x: 300, y: 95, show: 0}
+            ];
+            document.getElementById('msgBox').innerText = "🔨 Hãy click chuột/chạm tay nhanh như chớp trực tiếp vào các Robot chuột xuất hiện!";
+        }
+    }
+
+    function stopMiniGame() {
+        if(activeGame > 0) {
+            document.getElementById('btnGame1').innerText = "🦴 HỨNG XƯƠNG"; 
+            document.getElementById('btnGame2').innerText = "💣 NÉ BOM";
+            document.getElementById('btnGame3').innerText = "🔨 ĐẬP CHUỘT MÁY";
+            clearInterval(gameTimer); activeGame = 0; dogAction = 'idle'; save();
+        }
+    }
+
+    function switchTab(tab) {
+        if (isWheelSpinning || birthdayCountdown > 0) return;
+        stopMiniGame();
+        document.getElementById('panel-home').style.display = tab === 'home' ? 'grid' : 'none';
+        document.getElementById('panel-shop').style.display = tab === 'shop' ? 'grid' : 'none';
+        document.getElementById('panel-game').style.display = tab === 'game' ? 'grid' : 'none';
+        document.getElementById('panel-edu').style.display = tab === 'edu' ? 'block' : 'none';
+        
+        document.getElementById('tabHome').classList.toggle('active', tab === 'home');
+        document.getElementById('tabShop').classList.toggle('active', tab === 'shop');
+        document.getElementById('tabGame').classList.toggle('active', tab === 'game');
+        document.getElementById('tabEdu').classList.toggle('active', tab === 'edu');
+    }
+
+    function updateUI() {
+        document.getElementById('uiHunger').innerText = Math.floor(saveState.hunger);
+        document.getElementById('uiThirst').innerText = Math.floor(saveState.thirst);
+        document.getElementById('uiHappy').innerText = Math.floor(saveState.happy);
+        document.getElementById('uiClean').innerText = Math.floor(saveState.clean);
+        
+        let currentLvl = Math.floor(saveState.age);
+        let evoStage = "Sơ Sinh 🌱";
+        if (currentLvl >= 3 && currentLvl <= 5) evoStage = "Trưởng Thành 🔥";
+        else if (currentLvl >= 6) evoStage = "Huyền Thoại ⚡🎚️";
+        
+        document.getElementById('uiLevelBadge').innerText = `Cấp độ: Lvl ${currentLvl} (Tiến hóa: ${evoStage} - ${Math.floor((saveState.age - currentLvl) * 100)}%)`;
+        
+        document.getElementById('txtCoins').innerText = saveState.coins;
+        document.getElementById('txtGems').innerText = saveState.gems;
+        document.getElementById('txtTickets').innerText = saveState.tickets;
+        document.getElementById('lblFood').innerText = saveState.inventory.food;
+        document.getElementById('lblWater').innerText = saveState.inventory.water;
+        document.getElementById('lblSoap').innerText = saveState.inventory.soap;
+        document.getElementById('lblMed').innerText = saveState.inventory.medicine;
+        
+        document.getElementById('shHat').disabled = currentLvl < 2; 
+        document.getElementById('shFlower').disabled = currentLvl < 3;
+        document.getElementById('shFence').disabled = currentLvl < 4; 
+        document.getElementById('shUfo').disabled = currentLvl < 5;
+        
+        if (saveState.petType !== null) {
+            document.getElementById('txtStage').innerText = ["Cún Con 🐶", "Mèo Máy 🐱", "Gấu Nhỏ 🐻", "Thỏ Bông 🐰", "Rồng Thần 🐲"][saveState.petType - 1];
+            document.getElementById('txtStatus').innerText = saveState.isSick ? "🤢 NHIỄM BỆNH" : (saveState.isSleeping ? "💤 ĐANG NGỦ" : "❤️ KHỎE MẠNH");
+        }
+    }
+
+    function triggerResetUI() { isResetOverlayActive = true; }
+
+    window.addEventListener('keydown', (e) => {
+        if (activeGame === 2 && e.code === 'Space' && isGrounded) { jumpVelocity = -10.5; isGrounded = false; sound('jump'); }
+    });
+
+    function save() { localStorage.setItem('dogotchi_v12_hyper', JSON.stringify(saveState)); }
+    
+    // Khởi động render đồ họa ma trận lượng tử
+    updateUI();
+    if(saveState.petType === null) document.getElementById('msgBox').innerText = "Chào mừng nhà tạo hóa vĩ đại! Hãy chọn 1 giống loài cổ xưa trên màn hình để khởi nguyên sự sống.";
+    else document.getElementById('msgBox').innerText = "Hệ thống Hyper Evolution v12.0 đã sẵn sàng vận hành ổn định.";
+    render();
+</script>
+</body>
+</html>
